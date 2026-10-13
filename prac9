@@ -1,0 +1,122 @@
+import heapq
+
+# Starting puzzle
+start = (
+    1, 2, 3, 4,
+    5, 6, 7, 8,
+    9, 10, 0, 12,
+    13, 14, 11, 15
+)
+
+# Goal puzzle
+goal = (
+    1, 2, 3, 4,
+    5, 6, 7, 8,
+    9, 10, 11, 12,
+    13, 14, 15, 0
+)
+
+# Calculate Manhattan distance
+def heuristic(state):
+    h = 0
+
+    for i in range(16):
+        if state[i] != 0:
+            goal_position = state[i] - 1
+
+            r1 = i // 4
+            c1 = i % 4
+            r2 = goal_position // 4
+            c2 = goal_position % 4
+
+            h += abs(r1 - r2) + abs(c1 - c2)
+
+    return h
+
+
+# Priority queue
+queue = []
+heapq.heappush(queue, (heuristic(start), 0, start, []))
+
+visited = set()
+
+while queue:
+    f, cost, state, path = heapq.heappop(queue)
+
+    if state in visited:
+        continue
+
+    visited.add(state)
+
+    # Check whether goal is reached
+    if state == goal:
+        print("Solution Found!")
+        print("Number of Moves =", len(path))
+
+        print("\nInitial State:")
+        for i in range(16):
+            print("_" if start[i] == 0 else start[i], end=" ")
+            if (i + 1) % 4 == 0:
+                print()
+
+        print("\nSolution:")
+        for s in path:
+            print()
+            for i in range(16):
+                print("_" if s[i] == 0 else s[i], end=" ")
+                if (i + 1) % 4 == 0:
+                    print()
+        break
+
+    # Find blank position
+    zero = state.index(0)
+    row = zero // 4
+    col = zero % 4
+
+    next_states = []
+
+    # Move Up
+    if row > 0:
+        new_state = list(state)
+        new_state[zero], new_state[zero - 4] = (
+            new_state[zero - 4], new_state[zero]
+        )
+        next_states.append(tuple(new_state))
+
+    # Move Down
+    if row < 3:
+        new_state = list(state)
+        new_state[zero], new_state[zero + 4] = (
+            new_state[zero + 4], new_state[zero]
+        )
+        next_states.append(tuple(new_state))
+
+    # Move Left
+    if col > 0:
+        new_state = list(state)
+        new_state[zero], new_state[zero - 1] = (
+            new_state[zero - 1], new_state[zero]
+        )
+        next_states.append(tuple(new_state))
+
+    # Move Right
+    if col < 3:
+        new_state = list(state)
+        new_state[zero], new_state[zero + 1] = (
+            new_state[zero + 1], new_state[zero]
+        )
+        next_states.append(tuple(new_state))
+
+    # Calculate cost for each new state
+    for new_state in next_states:
+        if new_state not in visited:
+            new_cost = cost + 1
+            h = heuristic(new_state)
+            f = new_cost + h
+
+            heapq.heappush(
+                queue,
+                (f, new_cost, new_state, path + [new_state])
+            )
+else:
+    print("No solution found")
